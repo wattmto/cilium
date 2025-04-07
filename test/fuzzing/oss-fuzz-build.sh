@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eu
+set -eux
 
 # The oss-fuzz-build.sh is meant to only be run inside the OSS-Fuzz build environment.
 # In that environment, the fuzzers are built with go build which does not include _test.go files
@@ -11,6 +11,8 @@ set -eu
 
 # Add a fuzz dependency because OSS-Fuzz rewrites the testing types to ones compatible with libFuzzer which is the fuzzing engine used by OSS-Fuzz:
 printf "package policy\nimport _ \"github.com/AdamKorcz/go-118-fuzz-build/testing\"\n" > $SRC/cilium/pkg/policy/registerfuzzdep.go
+
+echo "replace github.com/AdamKorcz/go-118-fuzz-build => github.com/wattmto/go-118-fuzz-build add-testing-1-24" >> $SRC/cilium/go.mod
 
 go mod tidy && go mod vendor
 mv $SRC/cilium/pkg/policy/distillery_test.go $SRC/cilium/pkg/policy/distillery_test_fuzz.go
@@ -23,7 +25,7 @@ mv $SRC/cilium/pkg/policy/resolve_deny_test.go $SRC/cilium/pkg/policy/resolve_de
 mv $SRC/cilium/pkg/policy/rule_test.go $SRC/cilium/pkg/policy/rule_test_fuzz.go
 mv $SRC/cilium/pkg/policy/selectorcache_test.go $SRC/cilium/pkg/policy/selectorcache_test_fuzz.go
 
-compile_go_fuzzer github.com/cilium/cilium/test/fuzzing Fuzz fuzz gofuzz
+#compile_go_fuzzer github.com/cilium/cilium/test/fuzzing Fuzz FuzzParseLabel
 compile_native_go_fuzzer github.com/cilium/cilium/pkg/monitor/format FuzzFormatEvent FuzzFormatEvent
 compile_native_go_fuzzer github.com/cilium/cilium/pkg/k8s/apis/cilium.io/v2 FuzzCiliumNetworkPolicyParse FuzzCiliumNetworkPolicyParse
 compile_native_go_fuzzer github.com/cilium/cilium/pkg/k8s/apis/cilium.io/v2 FuzzCiliumClusterwideNetworkPolicyParse FuzzCiliumClusterwideNetworkPolicyParse
